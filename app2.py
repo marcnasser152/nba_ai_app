@@ -80,8 +80,21 @@ TEAM_STATS = {
     "Nuggets": {"off": 117.2, "def": 111.8, "pace": 97},
     "Suns": {"off": 115.3, "def": 113.0, "pace": 98},
     "Warriors": {"off": 114.0, "def": 113.5, "pace": 102},
+    "76ers": {"off": 115.8, "def": 111.0, "pace": 99},
+    "Knicks": {"off": 114.5, "def": 112.0, "pace": 96},
+    "Heat": {"off": 112.0, "def": 111.5, "pace": 95},
+    "Cavaliers": {"off": 113.0, "def": 110.5, "pace": 97},
+    "Hawks": {"off": 116.0, "def": 114.5, "pace": 102},
+    "Rockets": {"off": 112.5, "def": 113.0, "pace": 100},
+    "Thunder": {"off": 117.0, "def": 111.5, "pace": 101},
+    "Mavericks": {"off": 116.8, "def": 113.2, "pace": 99},
+    "Clippers": {"off": 114.2, "def": 111.8, "pace": 98},
+    "Kings": {"off": 117.5, "def": 115.0, "pace": 101},
+    "Timberwolves": {"off": 113.5, "def": 109.8, "pace": 97},
+    "Pelicans": {"off": 115.0, "def": 112.5, "pace": 99},
+    "Pacers": {"off": 118.2, "def": 115.5, "pace": 103},
+    "Bulls": {"off": 112.8, "def": 113.5, "pace": 97},
 }
-
 teams = list(TEAM_STATS.keys())
 
 # ----------------------------
