@@ -2,21 +2,17 @@ import streamlit as st
 import math
 import hashlib
 import pandas as pd
+import random
 
-# ----------------------------
-# CONFIG
-# ----------------------------
 st.set_page_config(page_title="ODD FATHERS NBA", layout="wide")
 
 # ----------------------------
-# LOGIN (SECURE)
+# LOGIN
 # ----------------------------
 def hash_pw(pw):
     return hashlib.sha256(pw.encode()).hexdigest()
 
-USERS = {
-    "user": hash_pw("user123")
-}
+USERS = {"user": hash_pw("user123")}
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -40,72 +36,63 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ----------------------------
-# TERMS
-# ----------------------------
-TERMS_TEXT = """
-By using this app, you agree that all predictions are for informational purposes only.
-No guarantees of profit or success.
-"""
-
-if "accepted_terms" not in st.session_state:
-    st.session_state.accepted_terms = False
-
-if not st.session_state.accepted_terms:
-    st.title("📜 Terms & Conditions")
-    st.write(TERMS_TEXT)
-
-    agree = st.checkbox("I agree")
-
-    if st.button("Continue"):
-        if agree:
-            st.session_state.accepted_terms = True
-            st.rerun()
-        else:
-            st.error("You must agree")
-
-    st.stop()
-
-# ----------------------------
 # TITLE
 # ----------------------------
 st.title("🏀🔥 ODD FATHERS NBA - AI Predictions")
 
 # ----------------------------
-# REAL TEAM DATA (STABLE)
+# TEAM DATA (IMPROVED)
 # ----------------------------
 TEAM_STATS = {
-    "Lakers": {"off": 113.2, "def": 112.5, "pace": 101},
-    "Celtics": {"off": 118.0, "def": 110.2, "pace": 99},
-    "Bucks": {"off": 116.5, "def": 112.0, "pace": 100},
-    "Nuggets": {"off": 117.2, "def": 111.8, "pace": 97},
-    "Suns": {"off": 115.3, "def": 113.0, "pace": 98},
-    "Warriors": {"off": 114.0, "def": 113.5, "pace": 102},
-    "76ers": {"off": 115.8, "def": 111.0, "pace": 99},
-    "Knicks": {"off": 114.5, "def": 112.0, "pace": 96},
-    "Heat": {"off": 112.0, "def": 111.5, "pace": 95},
-    "Cavaliers": {"off": 113.0, "def": 110.5, "pace": 97},
-    "Hawks": {"off": 116.0, "def": 114.5, "pace": 102},
-    "Rockets": {"off": 112.5, "def": 113.0, "pace": 100},
-    "Thunder": {"off": 117.0, "def": 111.5, "pace": 101},
-    "Mavericks": {"off": 116.8, "def": 113.2, "pace": 99},
-    "Clippers": {"off": 114.2, "def": 111.8, "pace": 98},
-    "Kings": {"off": 117.5, "def": 115.0, "pace": 101},
-    "Timberwolves": {"off": 113.5, "def": 109.8, "pace": 97},
-    "Pelicans": {"off": 115.0, "def": 112.5, "pace": 99},
-    "Pacers": {"off": 118.2, "def": 115.5, "pace": 103},
-    "Bulls": {"off": 112.8, "def": 113.5, "pace": 97},
+    "Lakers": {"off": 113, "def": 112, "pace": 101},
+    "Celtics": {"off": 118, "def": 110, "pace": 99},
+    "Bucks": {"off": 117, "def": 112, "pace": 100},
+    "Nuggets": {"off": 117, "def": 111, "pace": 97},
+    "Suns": {"off": 115, "def": 113, "pace": 98},
+    "Warriors": {"off": 114, "def": 113, "pace": 102},
+    "76ers": {"off": 116, "def": 111, "pace": 99},
+    "Knicks": {"off": 115, "def": 112, "pace": 96},
+    "Heat": {"off": 112, "def": 111, "pace": 95},
+    "Cavaliers": {"off": 113, "def": 110, "pace": 97},
+    "Hawks": {"off": 116, "def": 115, "pace": 102},
+    "Rockets": {"off": 113, "def": 113, "pace": 100},
+    "Thunder": {"off": 117, "def": 111, "pace": 101},
+    "Mavericks": {"off": 117, "def": 113, "pace": 99},
 }
+
+PLAYER_STATS = {
+    "Lakers": ("LeBron James", 27),
+    "Celtics": ("Jayson Tatum", 28),
+    "Bucks": ("Giannis", 30),
+    "Nuggets": ("Jokic", 29),
+    "Suns": ("Booker", 27),
+    "Warriors": ("Curry", 29),
+    "76ers": ("Embiid", 30),
+    "Knicks": ("Brunson", 26),
+    "Heat": ("Butler", 24),
+    "Cavaliers": ("Mitchell", 28),
+    "Hawks": ("Trae Young", 27),
+    "Rockets": ("Jalen Green", 23),
+    "Thunder": ("SGA", 30),
+    "Mavericks": ("Luka Doncic", 32),
+}
+
 teams = list(TEAM_STATS.keys())
 
-# ----------------------------
-# SELECT MATCH
-# ----------------------------
 team1 = st.selectbox("Home Team", teams)
 team2 = st.selectbox("Away Team", teams)
+
+if team1 == team2:
+    st.warning("Select different teams")
+    st.stop()
 
 # ----------------------------
 # MODEL
 # ----------------------------
+def normal_prob(mean, std, threshold):
+    z = (threshold - mean) / std
+    return 100 * (1 - (0.5 * (1 + math.erf(z / math.sqrt(2)))))
+
 def predict(team1, team2):
 
     t1 = TEAM_STATS[team1]
@@ -116,21 +103,41 @@ def predict(team1, team2):
 
     pace = (pace1 + pace2) / 2
 
-    p1 = (off1 * pace / 100) - (def2 * 0.5)
-    p2 = (off2 * pace / 100) - (def1 * 0.5)
+    # REALISTIC NBA SCORING
+    p1 = (off1 / 100) * pace + random.uniform(-5, 5)
+    p2 = (off2 / 100) * pace + random.uniform(-5, 5)
 
     total = p1 + p2
     diff = p1 - p2
 
-    home_prob = 100 / (1 + math.exp(-diff / 5))
+    home_prob = 100 / (1 + math.exp(-diff / 6))
     away_prob = 100 - home_prob
+
+    std = 12
+    over220 = normal_prob(total, std, 220)
+    over230 = normal_prob(total, std, 230)
+
+    # PLAYER PROPS
+    p1_name, p1_avg = PLAYER_STATS[team1]
+    p2_name, p2_avg = PLAYER_STATS[team2]
+
+    p1_points = p1_avg + (diff / 8) + random.uniform(-3, 3)
+    p2_points = p2_avg - (diff / 8) + random.uniform(-3, 3)
 
     return {
         "score": f"{int(p1)} - {int(p2)}",
         "home_prob": round(home_prob,1),
         "away_prob": round(away_prob,1),
         "total": round(total,1),
-        "spread": round(diff,1)
+        "spread": round(diff,1),
+        "team1_total": round(p1,1),
+        "team2_total": round(p2,1),
+        "over220": round(over220,1),
+        "over230": round(over230,1),
+        "p1_name": p1_name,
+        "p1_points": round(p1_points,1),
+        "p2_name": p2_name,
+        "p2_points": round(p2_points,1),
     }
 
 # ----------------------------
@@ -142,31 +149,33 @@ if st.button("🚀 RUN AI ANALYSIS"):
 
     st.subheader(f"{team1} vs {team2}")
 
-    st.write(f"🏀 Score Prediction: {pred['score']}")
+    st.write(f"🏀 Score: {pred['score']}")
 
     st.write("### 📊 Win Probability")
     st.progress(pred["home_prob"]/100)
     st.write(f"{team1}: {pred['home_prob']}%")
     st.write(f"{team2}: {pred['away_prob']}%")
 
-    st.write("### 📈 Total Points")
-    st.write(f"{pred['total']}")
+    st.write("### 📈 Totals")
+    st.write(f"Game Total: {pred['total']}")
+    st.write(f"{team1} Total: {pred['team1_total']}")
+    st.write(f"{team2} Total: {pred['team2_total']}")
 
-    st.write("### 🎯 Spread")
+    st.write("### 🎯 Over/Under")
+    st.write(f"Over 220: {pred['over220']}%")
+    st.write(f"Over 230: {pred['over230']}%")
+
+    st.write("### 🏀 Spread")
     st.write(f"{team1} {pred['spread']}")
 
-    chart_data = pd.DataFrame({
+    st.write("### ⭐ Player Props")
+    st.write(f"{pred['p1_name']}: {pred['p1_points']} pts")
+    st.write(f"{pred['p2_name']}: {pred['p2_points']} pts")
+
+    # Chart
+    chart = pd.DataFrame({
         "Team": [team1, team2],
         "Win %": [pred["home_prob"], pred["away_prob"]]
     }).set_index("Team")
 
-    st.bar_chart(chart_data)
-
-    confidence = abs(pred["spread"])
-
-    if confidence > 10:
-        st.success("🔥 HIGH CONFIDENCE PICK")
-    elif confidence > 5:
-        st.warning("⚠️ MEDIUM CONFIDENCE")
-    else:
-        st.info("❄️ LOW CONFIDENCE")
+    st.bar_chart(chart)
